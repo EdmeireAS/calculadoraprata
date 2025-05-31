@@ -2,77 +2,186 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Calculadora de Preço - Semijoia Prata</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Preço - Semijoia</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
+      margin: 0;
+      background-color: #f8f8f8;
+    }
+    .container {
       max-width: 500px;
       margin: auto;
-      background-color: #f8f8f8;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     h1 {
       text-align: center;
       color: #d4af37;
+      font-size: 1.5rem;
     }
-    label, input {
-      display: block;
+    label {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input, select {
       width: 100%;
-      margin: 10px 0;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    input[type="file"] {
+      padding: 5px;
     }
     button {
       background-color: #d4af37;
       color: white;
-      padding: 10px;
+      padding: 12px;
       border: none;
+      border-radius: 4px;
       cursor: pointer;
       width: 100%;
-      font-size: 16px;
+      margin-top: 20px;
+      font-size: 1rem;
+    }
+    button:hover {
+      background-color: #c49e30;
     }
     #resultado {
       margin-top: 20px;
-      background-color: #fff;
+      background-color: #fff8dc;
       padding: 15px;
       border-radius: 5px;
       text-align: center;
       font-size: 18px;
+      color: #333;
+      font-weight: bold;
     }
     .logo {
       display: block;
       margin: 0 auto 20px;
-      max-width: 200px;
+      max-width: 100%;
+      height: auto;
+    }
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.2rem;
+      }
+      button, input, select {
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
 <body>
-  <img src="https://raw.githubusercontent.com/SEU_USUARIO/calculadora-semijoia/main/logo.jpeg" alt="Logo A Gata Semijoias" class="logo">
-  <h1>Calculadora A Gata Semijoias - Prata</h1>
+  <div class="container">
+    <img src="https://raw.githubusercontent.com/edmeireas/calculadoraprata/main/logo.jpeg" alt="Logo A Gata Semijoias" class="logo">
+    <h1>Calculadora A Gata Semijoias</h1>
 
-  <label for="peso">Peso da Peça (g):</label>
-  <input type="number" id="peso" step="0.01">
+    <label for="codigo">Código da Peça:</label>
+    <input type="text" id="codigo">
 
-  <label for="bruto">Custo do Bruto (R$):</label>
-  <input type="number" id="bruto" step="0.01">
+    <label for="material">Material:</label>
+    <select id="material">
+      <option value="prata">Prata 50ml</option>
+      <option value="ouro_corrente">Ouro Corrente</option>
+      <option value="ouro_brincos">Ouro Brincos</option>
+    </select>
 
-  <button onclick="calcular()">Calcular Preço Final</button>
+    <label for="peso">Peso da Peça (g):</label>
+    <input type="number" id="peso" step="0.01">
 
-  <div id="resultado"></div>
+    <label for="bruto">Custo do Bruto (R$):</label>
+    <input type="number" id="bruto" step="0.01">
+
+    <label for="foto">Foto da Peça:</label>
+    <input type="file" id="foto" accept="image/*">
+
+    <button onclick="calcular()">Calcular Preço Final</button>
+    <button onclick="gerarPDF()">Salvar em PDF</button>
+
+    <div id="resultado"></div>
+  </div>
 
   <script>
     function calcular() {
-      const precoGrama = 1.50;
-      const custoEmbalagem = 2.00;
-      const lucro = 3.0; // 300%
-
+      const material = document.getElementById("material").value;
       const peso = parseFloat(document.getElementById("peso").value) || 0;
       const bruto = parseFloat(document.getElementById("bruto").value) || 0;
 
-      const custoPrata = peso * precoGrama;
-      const custoTotal = custoPrata + custoEmbalagem + bruto;
+      let precoGrama = 0;
+
+      if (material === "prata") {
+        precoGrama = 1.70;
+      } else if (material === "ouro_corrente") {
+        precoGrama = 6.18;
+      } else if (material === "ouro_brincos") {
+        precoGrama = 5.10;
+      }
+
+      const custoEmbalagem = 2.00;
+      const lucro = 3.0;
+
+      const custoMaterial = peso * precoGrama;
+      const custoTotal = custoMaterial + custoEmbalagem + bruto;
       const precoFinal = custoTotal * lucro;
 
       document.getElementById("resultado").innerHTML =
         `<strong>Preço final sugerido: R$ ${precoFinal.toFixed(2)}</strong>`;
+
+      // Adiciona classe ao body indicando que houve cálculo
+      document.body.classList.add("calculado");
+    }
+
+    async function gerarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const codigo = document.getElementById("codigo").value;
+      const material = document.getElementById("material").value;
+      const peso = document.getElementById("peso").value;
+      const bruto = document.getElementById("bruto").value;
+      const resultado = document.getElementById("resultado").innerText;
+
+      doc.setFontSize(16);
+      doc.text("A Gata Semijoias - Orçamento", 20, 20);
+      doc.setFontSize(12);
+      if (codigo) doc.text(`Código da peça: ${codigo}`, 20, 35);
+
+      let materialTexto = "";
+      if (material === 'prata') materialTexto = 'Prata 50ml';
+      else if (material === 'ouro_corrente') materialTexto = 'Ouro Corrente';
+      else if (material === 'ouro_brincos') materialTexto = 'Ouro Brincos';
+
+      doc.text(`Material: ${materialTexto}`, 20, 45);
+      doc.text(`Peso da peça: ${peso} g`, 20, 55);
+      doc.text(`Custo do bruto: R$ ${bruto}`, 20, 65);
+      doc.text(resultado, 20, 80);
+
+      const fotoInput = document.getElementById("foto");
+      const file = fotoInput.files[0];
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const imgData = e.target.result;
+          doc.addImage(imgData, 'JPEG', 20, 90, 80, 80);
+          doc.save("orcamento-semijoia.pdf");
+        };
+        reader.readAsDataURL(file);
+      } else {
+        doc.save("orcamento-semijoia.pdf");
+      }
     }
   </script>
 </body>
