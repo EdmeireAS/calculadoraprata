@@ -37,9 +37,15 @@
       text-align: center;
       font-size: 18px;
     }
+    .logo {
+      display: block;
+      margin: 0 auto 20px;
+      max-width: 200px;
+    }
   </style>
 </head>
 <body>
+  <img src="https://raw.githubusercontent.com/SEU_USUARIO/calculadora-semijoia/main/logo.jpeg" alt="Logo A Gata Semijoias" class="logo">
   <h1>Calculadora A Gata Semijoias - Prata</h1>
 
   <label for="peso">Peso da Peça (g):</label>
@@ -56,7 +62,7 @@
     function calcular() {
       const precoGrama = 1.50;
       const custoEmbalagem = 2.00;
-      const lucro = 2.0; // 200%
+      const lucro = 3.0; // 300%
 
       const peso = parseFloat(document.getElementById("peso").value) || 0;
       const bruto = parseFloat(document.getElementById("bruto").value) || 0;
