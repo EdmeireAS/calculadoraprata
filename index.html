@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Preço - Semijoia Prata</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      background-color: #f8f8f8;
+    }
+    h1 {
+      text-align: center;
+      color: #d4af37;
+    }
+    label, input {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+    }
+    button {
+      background-color: #d4af37;
+      color: white;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+    }
+    #resultado {
+      margin-top: 20px;
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 5px;
+      text-align: center;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Calculadora A Gata Semijoias - Prata</h1>
+
+  <label for="peso">Peso da Peça (g):</label>
+  <input type="number" id="peso" step="0.01">
+
+  <label for="bruto">Custo do Bruto (R$):</label>
+  <input type="number" id="bruto" step="0.01">
+
+  <button onclick="calcular()">Calcular Preço Final</button>
+
+  <div id="resultado"></div>
+
+  <script>
+    function calcular() {
+      const precoGrama = 1.50;
+      const custoEmbalagem = 2.00;
+      const lucro = 2.0; // 200%
+
+      const peso = parseFloat(document.getElementById("peso").value) || 0;
+      const bruto = parseFloat(document.getElementById("bruto").value) || 0;
+
+      const custoPrata = peso * precoGrama;
+      const custoTotal = custoPrata + custoEmbalagem + bruto;
+      const precoFinal = custoTotal * lucro;
+
+      document.getElementById("resultado").innerHTML =
+        `<strong>Preço final sugerido: R$ ${precoFinal.toFixed(2)}</strong>`;
+    }
+  </script>
+</body>
+</html>
