@@ -1,24 +1,20 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculadora de Preço - Semijoia</title>
+  <meta charset="UTF-8" />
+  <title>Calculadora de Orçamento - A Gata Semijoias</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    /* Seu CSS aqui, igual ao anterior... */
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
-      margin: 0;
       background-color: #f8f8f8;
     }
     .container {
-      max-width: 500px;
+      max-width: 700px;
       margin: auto;
-      background-color: white;
+      background: white;
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -28,64 +24,46 @@
       color: #d4af37;
       font-size: 1.5rem;
     }
-    label {
-      margin-top: 15px;
-      font-weight: bold;
-    }
-    input, select {
+    label, input, select, button {
+      display: block;
       width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      margin-top: 10px;
       font-size: 1rem;
     }
-    input[type="file"] {
-      padding: 5px;
+    input, select {
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
     }
     button {
       background-color: #d4af37;
       color: white;
-      padding: 12px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      width: 100%;
+      padding: 12px;
       margin-top: 20px;
-      font-size: 1rem;
     }
     button:hover {
       background-color: #c49e30;
     }
-    #resultado {
+    table {
+      width: 100%;
+      border-collapse: collapse;
       margin-top: 20px;
-      background-color: #fff8dc;
-      padding: 15px;
-      border-radius: 5px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
       text-align: center;
-      font-size: 18px;
-      color: #333;
-      font-weight: bold;
     }
-    .logo {
-      display: block;
-      margin: 0 auto 20px;
-      max-width: 100%;
-      height: auto;
-    }
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 1.2rem;
-      }
-      button, input, select {
-        font-size: 1rem;
-      }
+    th {
+      background-color: #f2e8b8;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <img src="logo.jpeg.jpeg" alt="Logo A Gata Semijoias" class="logo">
     <h1>Calculadora A Gata Semijoias</h1>
 
     <label for="codigo">Código da Peça:</label>
@@ -107,82 +85,172 @@
     <label for="foto">Foto da Peça:</label>
     <input type="file" id="foto" accept="image/*">
 
-    <button onclick="calcular()">Calcular Preço Final</button>
-    <button onclick="gerarPDF()">Salvar em PDF</button>
+    <button onclick="adicionarPeca()">Adicionar Peça</button>
+    <button onclick="gerarPDF()">Gerar Orçamento</button>
 
-    <div id="resultado"></div>
+    <table id="listaPecas" style="display:none;">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Material</th>
+          <th>Peso (g)</th>
+          <th>Custo Bruto (R$)</th>
+          <th>Preço Final (R$)</th>
+          <th>Foto</th>
+          <th>Remover</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
   </div>
 
-  <script>
-    function calcular() {
-      const material = document.getElementById("material").value;
-      const peso = parseFloat(document.getElementById("peso").value) || 0;
-      const bruto = parseFloat(document.getElementById("bruto").value) || 0;
+<script>
+  const pecas = [];
 
-      let precoGrama = 0;
+  function calcularPrecoFinal(material, peso, bruto) {
+    let precoGrama = 0;
+    if (material === "prata") precoGrama = 1.70;
+    else if (material === "ouro_corrente") precoGrama = 6.18;
+    else if (material === "ouro_brincos") precoGrama = 5.10;
 
-      if (material === "prata") {
-        precoGrama = 1.70;
-      } else if (material === "ouro_corrente") {
-        precoGrama = 6.18;
-      } else if (material === "ouro_brincos") {
-        precoGrama = 5.10;
-      }
+    const custoEmbalagem = 2.00;
+    const lucro = 3.0;
 
-      const custoEmbalagem = 2.00;
-      const lucro = 3.0;
+    const custoMaterial = peso * precoGrama;
+    const custoTotal = custoMaterial + custoEmbalagem + bruto;
+    const precoFinal = custoTotal * lucro;
 
-      const custoMaterial = peso * precoGrama;
-      const custoTotal = custoMaterial + custoEmbalagem + bruto;
-      const precoFinal = custoTotal * lucro;
+    return precoFinal;
+  }
 
-      document.getElementById("resultado").innerHTML =
-        `<strong>Preço final sugerido: R$ ${precoFinal.toFixed(2)}</strong>`;
+  function adicionarPeca() {
+    const codigo = document.getElementById("codigo").value.trim();
+    const material = document.getElementById("material").value;
+    const peso = parseFloat(document.getElementById("peso").value);
+    const bruto = parseFloat(document.getElementById("bruto").value);
+    const fotoInput = document.getElementById("foto");
+    const fotoFile = fotoInput.files[0];
 
-      // Adiciona classe ao body indicando que houve cálculo
-      document.body.classList.add("calculado");
+    if (!codigo) { alert("Informe o código da peça."); return; }
+    if (isNaN(peso) || peso <= 0) { alert("Informe um peso válido maior que zero."); return; }
+    if (isNaN(bruto) || bruto < 0) { alert("Informe um custo bruto válido."); return; }
+
+    const precoFinal = calcularPrecoFinal(material, peso, bruto);
+
+    // Ler foto e converter para base64 para armazenar no array
+    if (fotoFile) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const fotoBase64 = e.target.result;
+        pecas.push({codigo, material, peso, bruto, precoFinal, fotoBase64});
+        atualizarTabela();
+        limparFormulario();
+      };
+      reader.readAsDataURL(fotoFile);
+    } else {
+      pecas.push({codigo, material, peso, bruto, precoFinal, fotoBase64: null});
+      atualizarTabela();
+      limparFormulario();
+    }
+  }
+
+  function atualizarTabela() {
+    const tabela = document.getElementById("listaPecas");
+    const tbody = tabela.querySelector("tbody");
+    tbody.innerHTML = "";
+
+    if (pecas.length === 0) {
+      tabela.style.display = "none";
+      return;
+    }
+    tabela.style.display = "table";
+
+    pecas.forEach((p, i) => {
+      const materialTexto = p.material === 'prata' ? 'Prata 50ml' : p.material === 'ouro_corrente' ? 'Ouro Corrente' : 'Ouro Brincos';
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${p.codigo}</td>
+        <td>${materialTexto}</td>
+        <td>${p.peso.toFixed(2)}</td>
+        <td>R$ ${p.bruto.toFixed(2)}</td>
+        <td>R$ ${p.precoFinal.toFixed(2)}</td>
+        <td>${p.fotoBase64 ? `<img src="${p.fotoBase64}" alt="Foto" style="max-width:60px; max-height:60px;" />` : "Sem foto"}</td>
+        <td><button onclick="removerPeca(${i})" style="background:#c44; color:#fff; border:none; border-radius:3px; padding:4px 8px; cursor:pointer;">X</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function removerPeca(index) {
+    pecas.splice(index, 1);
+    atualizarTabela();
+  }
+
+  function limparFormulario() {
+    document.getElementById("codigo").value = "";
+    document.getElementById("material").value = "prata";
+    document.getElementById("peso").value = "";
+    document.getElementById("bruto").value = "";
+    document.getElementById("foto").value = "";
+  }
+
+  async function gerarPDF() {
+    if (pecas.length === 0) {
+      alert("Adicione pelo menos uma peça para gerar o orçamento.");
+      return;
     }
 
-    async function gerarPDF() {
-      const jsPDF = window.jspdf.jsPDF;
-      const doc = new jsPDF();
+    const jsPDF = window.jspdf.jsPDF;
+    const doc = new jsPDF();
 
-      const codigo = document.getElementById("codigo").value;
-      const material = document.getElementById("material").value;
-      const peso = document.getElementById("peso").value;
-      const bruto = document.getElementById("bruto").value;
-      const resultado = document.getElementById("resultado").innerText;
+    doc.setFontSize(16);
+    doc.text("A Gata Semijoias - Orçamento", 20, 20);
 
-      doc.setFontSize(16);
-      doc.text("A Gata Semijoias - Orçamento", 20, 20);
+    let y = 35;
+    let totalGeral = 0;
+
+    for (let i = 0; i < pecas.length; i++) {
+      const p = pecas[i];
+      const materialTexto = p.material === 'prata' ? 'Prata 50ml' : p.material === 'ouro_corrente' ? 'Ouro Corrente' : 'Ouro Brincos';
+      totalGeral += p.precoFinal;
+
+      if (y > 260) { // quebra de página simples
+        doc.addPage();
+        y = 20;
+      }
+
       doc.setFontSize(12);
-      if (codigo) doc.text(`Código da peça: ${codigo}`, 20, 35);
+      doc.text(`Peça ${i+1}`, 20, y);
+      y += 7;
+      doc.text(`Código: ${p.codigo}`, 20, y);
+      y += 7;
+      doc.text(`Material: ${materialTexto}`, 20, y);
+      y += 7;
+      doc.text(`Peso: ${p.peso.toFixed(2)} g`, 20, y);
+      y += 7;
+      doc.text(`Custo bruto: R$ ${p.bruto.toFixed(2)}`, 20, y);
+      y += 7;
+      doc.text(`Preço final: R$ ${p.precoFinal.toFixed(2)}`, 20, y);
+      y += 7;
 
-      let materialTexto = "";
-      if (material === 'prata') materialTexto = 'Prata 50ml';
-      else if (material === 'ouro_corrente') materialTexto = 'Ouro Corrente';
-      else if (material === 'ouro_brincos') materialTexto = 'Ouro Brincos';
-
-      doc.text(`Material: ${materialTexto}`, 20, 45);
-      doc.text(`Peso da peça: ${peso} g`, 20, 55);
-      doc.text(`Custo do bruto: R$ ${bruto}`, 20, 65);
-      doc.text(resultado, 20, 80);
-
-      const fotoInput = document.getElementById("foto");
-      const file = fotoInput.files[0];
-
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const imgData = e.target.result;
-          doc.addImage(imgData, 'JPEG', 20, 90, 80, 80);
-          doc.save("orcamento-semijoia.pdf");
-        };
-        reader.readAsDataURL(file);
-      } else {
-        doc.save("orcamento-semijoia.pdf");
+      if (p.fotoBase64) {
+        // Tenta adicionar foto no PDF (reduz tamanho)
+        try {
+          doc.addImage(p.fotoBase64, 'JPEG', 140, y - 35, 50, 50);
+        } catch(e) {
+          // Se falhar, ignora imagem para continuar
+        }
       }
+      y += 55;
     }
-  </script>
+
+    doc.setFontSize(14);
+    doc.text(`Total geral: R$ ${totalGeral.toFixed(2)}`, 20, y);
+
+    doc.save("orcamento-semijoias.pdf");
+  }
+</script>
 </body>
 </html>
