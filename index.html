@@ -144,7 +144,7 @@
     }
 
     async function gerarPDF() {
-      const { jsPDF } = window.jspdf;
+      const jsPDF = window.jspdf.jsPDF;
       const doc = new jsPDF();
 
       const codigo = document.getElementById("codigo").value;
